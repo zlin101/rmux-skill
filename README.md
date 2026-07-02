@@ -1,8 +1,8 @@
 # rmux-skill
 
-> A skill that teaches AI agents to discover, talk to, read, and synchronize **other terminal-based agents** through [rmux](https://github.com/rmux-rs/rmux) — a tmux-compatible terminal multiplexer written in Rust.
+> A skill that teaches AI agents to discover, talk to, read, and synchronize **other terminal-based agents** through [rmux](https://github.com/Helvesec/rmux) — a universal, tmux-compatible Rust terminal multiplexer that runs natively on Linux, macOS, and Windows.
 
-[English](#) · [简体中文](./rmux-skill-cn/SKILL.zh-CN.md)
+**English** · [简体中文](./README.zh-CN.md)
 
 ---
 
@@ -39,6 +39,27 @@ discover ─▶ send ─▶ read ─▶ (share / sync)
 
 ## Install
 
+### 1. Install rmux (required dependency)
+
+`rmux` is the terminal multiplexer this skill drives. Install it from the [rmux project](https://github.com/Helvesec/rmux):
+
+| Platform | Command |
+|---|---|
+| macOS (Homebrew) | `brew install rmux` |
+| Windows (WinGet) | `winget install rmux` |
+| Windows (Chocolatey) | `choco install rmux` |
+| Windows (Scoop) | `scoop bucket add rmux https://github.com/Helvesec/scoop-rmux && scoop install rmux` |
+| Windows (PowerShell) | `irm https://rmux.io/install.ps1 \| iex` |
+| Linux / macOS (Nix) | `nix profile install github:Helvesec/rmux` |
+| Any (Cargo) | `cargo install rmux --locked` |
+| Linux (APT / DNF) | see the [rmux install guides](https://github.com/Helvesec/rmux#-installation) |
+
+Verify it's on your `$PATH`: `rmux -V`, then `rmux diagnose` (or `rmux capabilities`).
+
+> The skill assumes an **isolated rmux server** via `-L SOCKET` so agent fleets never disturb your real tmux sessions. Full docs: [rmux.io/docs](https://rmux.io/docs).
+
+### 2. Install the skill
+
 This repo ships **two language variants of the same skill**, each a self-contained, installable directory:
 
 ```
@@ -51,11 +72,6 @@ Install whichever matches your agent's working language (or both). Each `SKILL.m
 **Claude Code** — copy a directory into your skills folder, e.g. `~/.claude/skills/rmux-skill/` (so the file lands at `~/.claude/skills/rmux-skill/SKILL.md`), or reference this repo from a plugin.
 
 **Other agents** that support file-based skills — point them at the `SKILL.md` inside either directory. The content is platform-agnostic instructions; it tells the agent *what to do*, not which runtime tool to call.
-
-### Prerequisites
-
-- `rmux` installed and on `$PATH`. Verify with `rmux diagnose` or `rmux capabilities`.
-- The skill assumes an **isolated rmux server** via `-L SOCKET` so agent fleets never disturb your real tmux sessions.
 
 ## Quick start
 
