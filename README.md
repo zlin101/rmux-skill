@@ -57,6 +57,38 @@ Direct `send-keys` writes into the target pane's current input. Use it when the 
 
 ## Install
 
+### Quick install
+
+Install directly from the published script, without cloning this repository.
+
+For Codex:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh | sh -s -- codex
+```
+
+For Claude Code:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh | sh -s -- claude
+```
+
+To inspect before running:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh -o /tmp/rmux-skill-install.sh
+less /tmp/rmux-skill-install.sh
+sh /tmp/rmux-skill-install.sh codex
+```
+
+Pin a branch or tag:
+
+```sh
+RMUX_SKILL_REF=<tag-or-commit> sh /tmp/rmux-skill-install.sh codex
+```
+
+Restart Codex, Claude Code, or reload skills if your environment requires it.
+
 ### 1. Install rmux (required dependency)
 
 `rmux` is the terminal multiplexer this skill drives. Install it from the [rmux project](https://github.com/Helvesec/rmux):
@@ -86,9 +118,21 @@ rmux-skill/        # English skill — SKILL.md
 
 Install `rmux-skill/`. Its `SKILL.md` is a markdown file the agent reads on demand — drop it wherever your agent loads skills from. The Chinese README is documentation only, not a separate installable skill.
 
-**Claude Code** — copy a directory into your skills folder, e.g. `~/.claude/skills/rmux-skill/` (so the file lands at `~/.claude/skills/rmux-skill/SKILL.md`), or reference this repo from a plugin.
+**Claude Code** — install to `~/.claude/skills/rmux-skill/` (so the file lands at `~/.claude/skills/rmux-skill/SKILL.md`), or reference this repo from a plugin.
+
+**Codex** — install to `~/.codex/skills/rmux-skill/` (so the file lands at `~/.codex/skills/rmux-skill/SKILL.md`).
 
 **Other agents** that support file-based skills — point them at `rmux-skill/SKILL.md`. The content is platform-agnostic instructions; it tells the agent *what to do*, not which runtime tool to call.
+
+Expected installed layout:
+
+```text
+~/.claude/skills/rmux-skill/
+└── SKILL.md
+
+~/.codex/skills/rmux-skill/
+└── SKILL.md
+```
 
 ## Quick start
 

@@ -57,6 +57,38 @@ rmux send-keys -t %1 'RMUX mode is active. Please use rmux to reply when needed.
 
 ## 安装
 
+### 快速安装
+
+通过发布的安装脚本直接安装，不需要 clone 本仓库。
+
+Codex：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh | sh -s -- codex
+```
+
+Claude Code：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh | sh -s -- claude
+```
+
+如果想先检查脚本内容：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zlin101/rmux-skill/main/install.sh -o /tmp/rmux-skill-install.sh
+less /tmp/rmux-skill-install.sh
+sh /tmp/rmux-skill-install.sh codex
+```
+
+固定安装某个分支或 tag：
+
+```sh
+RMUX_SKILL_REF=<tag-or-commit> sh /tmp/rmux-skill-install.sh codex
+```
+
+如果你的环境需要重新加载 skills，重启 Codex、Claude Code 或执行对应的 reload 操作。
+
 ### 1. 安装 rmux（必需依赖）
 
 `rmux` 是本 skill 驱动的终端复用器。从 [rmux 项目](https://github.com/Helvesec/rmux) 安装：
@@ -86,9 +118,21 @@ rmux-skill/        # 英文 skill —— SKILL.md
 
 安装 `rmux-skill/`。其中的 `SKILL.md` 是一个 markdown 文件，agent 按需读取——把它放到你的 agent 加载 skill 的地方即可。中文 README 仅作为说明文档保留，不再提供单独的中文 skill。
 
-**Claude Code** —— 把某个目录复制进你的 skills 目录，例如 `~/.claude/skills/rmux-skill/`（让文件落在 `~/.claude/skills/rmux-skill/SKILL.md`），或在一个 plugin 里引用本仓库。
+**Claude Code** —— 安装到 `~/.claude/skills/rmux-skill/`（让文件落在 `~/.claude/skills/rmux-skill/SKILL.md`），或在一个 plugin 里引用本仓库。
+
+**Codex** —— 安装到 `~/.codex/skills/rmux-skill/`（让文件落在 `~/.codex/skills/rmux-skill/SKILL.md`）。
 
 **其他支持文件式 skill 的 agent** —— 指向 `rmux-skill/SKILL.md`。内容是平台无关的指令；它告诉 agent *做什么*，而不是调用哪个运行时工具。
+
+期望的安装后目录结构：
+
+```text
+~/.claude/skills/rmux-skill/
+└── SKILL.md
+
+~/.codex/skills/rmux-skill/
+└── SKILL.md
+```
 
 ## 快速开始
 
