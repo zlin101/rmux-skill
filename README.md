@@ -20,7 +20,7 @@ It is a pure knowledge skill: no runtime, no dependencies beyond `rmux` itself. 
 - You're **synchronizing** agents — one waits until another signals completion.
 - You're building a **multi-agent workflow** and need tmux-style orchestration primitives.
 
-> 📄 The full instructions live in [`rmux-skill/SKILL.md`](./rmux-skill/SKILL.md) (English) and [`rmux-skill-cn/SKILL.zh-CN.md`](./rmux-skill-cn/SKILL.zh-CN.md) (Chinese). This README is for humans; the `SKILL.md` is what the agent loads.
+> 📄 The installable skill instructions live in [`rmux-skill/SKILL.md`](./rmux-skill/SKILL.md). This README is for humans; the `SKILL.md` is what the agent loads. A Chinese README is kept at [`README.zh-CN.md`](./README.zh-CN.md).
 
 ## The core loop
 
@@ -28,6 +28,24 @@ It is a pure knowledge skill: no runtime, no dependencies beyond `rmux` itself. 
 discover ─▶ send ─▶ read ─▶ (share / sync)
             send-keys    capture-pane    buffers / wait-for
 ```
+
+## RMUX mode protocol
+
+When the master/orchestrator enters rmux mode, it treats that as a fleet state change: discover live agent panes, build a roster, broadcast one notice to every other agent pane, then use pane ids for later messages. Every inter-agent notification should end with:
+
+```text
+[pane %PANE_ID, SIGNATURE]
+```
+
+Example:
+
+```sh
+rmux send-keys -t %1 'RMUX mode is active. Please use rmux to reply when needed. [pane %0, Codex]' Enter
+```
+
+This suffix gives each recipient the sender pane and a human-readable signature, so replies can be routed back without guessing. The master entry flow is: identify self, list panes, filter live agent CLIs, exclude self, broadcast once, remember the roster. After broadcasting, the master should not continuously poll for replies unless the workflow explicitly needs it.
+
+Direct `send-keys` writes into the target pane's current input. Use it when the target appears idle or the user explicitly wants prompt injection; use buffers for large, structured, or non-ASCII payloads.
 
 | Step | Do | Command |
 |------|----|---------|
@@ -60,18 +78,17 @@ Verify it's on your `$PATH`: `rmux -V`, then `rmux diagnose` (or `rmux capabilit
 
 ### 2. Install the skill
 
-This repo ships **two language variants of the same skill**, each a self-contained, installable directory:
+This repo ships one self-contained, installable skill directory:
 
 ```
 rmux-skill/        # English skill — SKILL.md
-rmux-skill-cn/     # Chinese skill  — SKILL.zh-CN.md
 ```
 
-Install whichever matches your agent's working language (or both). Each `SKILL.md` is a markdown file the agent reads on demand — drop it wherever your agent loads skills from.
+Install `rmux-skill/`. Its `SKILL.md` is a markdown file the agent reads on demand — drop it wherever your agent loads skills from. The Chinese README is documentation only, not a separate installable skill.
 
 **Claude Code** — copy a directory into your skills folder, e.g. `~/.claude/skills/rmux-skill/` (so the file lands at `~/.claude/skills/rmux-skill/SKILL.md`), or reference this repo from a plugin.
 
-**Other agents** that support file-based skills — point them at the `SKILL.md` inside either directory. The content is platform-agnostic instructions; it tells the agent *what to do*, not which runtime tool to call.
+**Other agents** that support file-based skills — point them at `rmux-skill/SKILL.md`. The content is platform-agnostic instructions; it tells the agent *what to do*, not which runtime tool to call.
 
 ## Quick start
 

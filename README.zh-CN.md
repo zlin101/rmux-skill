@@ -20,7 +20,7 @@
 - 你在 **同步** 多个 agent —— 一个等到另一个发出完成信号。
 - 你在搭建 **多 agent 工作流**，需要 tmux 风格的编排原语。
 
-> 📄 完整指令在 [`rmux-skill/SKILL.md`](./rmux-skill/SKILL.md)（英文）和 [`rmux-skill-cn/SKILL.zh-CN.md`](./rmux-skill-cn/SKILL.zh-CN.md)（中文）。本 README 是给人看的；`SKILL.md` 才是 agent 加载的文件。
+> 📄 可安装的 skill 指令在 [`rmux-skill/SKILL.md`](./rmux-skill/SKILL.md)。本 README 是保留给人阅读的中文说明；`SKILL.md` 才是 agent 加载的文件。
 
 ## 核心循环
 
@@ -28,6 +28,24 @@
 发现 ─▶ 发送 ─▶ 读取 ─▶（共享 / 同步）
         send-keys    capture-pane    buffers / wait-for
 ```
+
+## RMUX 模式协议
+
+当 master/编排者进入 rmux 模式时，这不是一次普通消息，而是整个 agent fleet 的状态切换：发现存活 agent pane、建立名册、向除自己以外的 agent pane 广播一次通知，之后用 pane id 定向发消息。每条 agent 间通知都应以后缀结尾：
+
+```text
+[pane %PANE_ID, SIGNATURE]
+```
+
+示例：
+
+```sh
+rmux send-keys -t %1 'RMUX mode is active. Please use rmux to reply when needed. [pane %0, Codex]' Enter
+```
+
+这个后缀让接收方知道发送者 pane 和可读署名，回复时不需要猜目标。master 进入流程是：识别自己、列出 panes、筛选存活 agent CLI、排除自己、广播一次、记住名册。广播后，除非工作流明确需要等待，否则 master 不应持续轮询回复。
+
+`send-keys` 会写入目标 pane 当前输入位置。只有在目标看起来空闲或用户明确要求注入 prompt 时使用；大载荷、结构化内容或非 ASCII 文本优先使用 buffer。
 
 | 步骤 | 做什么 | 命令 |
 |------|----|---------|
@@ -60,18 +78,17 @@
 
 ### 2. 安装 skill
 
-本仓库提供 **同一 skill 的两个语言版本**，各自是一个自包含、可安装的目录：
+本仓库提供一个自包含、可安装的 skill 目录：
 
 ```
 rmux-skill/        # 英文 skill —— SKILL.md
-rmux-skill-cn/     # 中文 skill  —— SKILL.zh-CN.md
 ```
 
-安装与你的 agent 工作语言匹配的那个（或都装）。每个 `SKILL.md` 都是一个 markdown 文件，agent 按需读取——把它放到你的 agent 加载 skill 的地方即可。
+安装 `rmux-skill/`。其中的 `SKILL.md` 是一个 markdown 文件，agent 按需读取——把它放到你的 agent 加载 skill 的地方即可。中文 README 仅作为说明文档保留，不再提供单独的中文 skill。
 
 **Claude Code** —— 把某个目录复制进你的 skills 目录，例如 `~/.claude/skills/rmux-skill/`（让文件落在 `~/.claude/skills/rmux-skill/SKILL.md`），或在一个 plugin 里引用本仓库。
 
-**其他支持文件式 skill 的 agent** —— 指向任一目录里的 `SKILL.md`。内容是平台无关的指令；它告诉 agent *做什么*，而不是调用哪个运行时工具。
+**其他支持文件式 skill 的 agent** —— 指向 `rmux-skill/SKILL.md`。内容是平台无关的指令；它告诉 agent *做什么*，而不是调用哪个运行时工具。
 
 ## 快速开始
 

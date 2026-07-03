@@ -13,6 +13,62 @@ Core loop: **discover** (`list-sessions` / `list-panes`) → **send** (`send-key
 
 > All commands below are live-verified against `rmux`. Flags mirror tmux; run `rmux <command> --help` for the full surface, and `rmux list-commands` for every command.
 
+## RMUX mode protocol
+
+When the user asks the master/orchestrator to enter **rmux mode**, treat it as a state change for the whole agent fleet, not just as a one-off message. The master must discover the live agent panes, announce coordination, and remember the resulting roster for later sends.
+
+Use this notification suffix on every inter-agent message:
+
+```text
+[pane %PANE_ID, SIGNATURE]
+```
+
+Rules:
+- `PANE_ID` is the sender's pane id, such as `%0` or `%3`.
+- `SIGNATURE` is a short sender identity, such as `Codex`, `Claude`, `master`, `worker`, or `codex/%0`.
+- Put the suffix at the end of the message so recipients can identify who sent it and where to reply.
+- Use the same suffix for broadcast notices, task handoffs, status updates, and replies.
+- If you are not inside rmux, discover your own pane from `RMUX_PANE`, `TMUX`, or `list-panes` before sending. If it cannot be determined, use `[pane unknown, SIGNATURE]`.
+
+Master entry checklist:
+1. Determine the master's own pane id (`RMUX_PANE` if present; otherwise infer it from the active pane/session or the known orchestration pane).
+2. List all panes with `pane_id`, `pane_current_command`, `pane_title`, and `pane_dead`.
+3. Build an agent roster from live panes whose foreground command looks like an agent CLI (`codex`, `claude`, `gemini`, `aider`, `cursor-agent`, `opencode`, etc.).
+4. Exclude the master's own pane from the broadcast targets.
+5. Send one rmux-mode notice to every remaining agent pane, with the suffix.
+6. Store the roster mentally for the current task so later messages can target pane ids directly.
+7. Do not wait on replies unless the user asks you to wait or the workflow requires an acknowledgement.
+
+Example:
+
+```sh
+rmux send-keys -t %1 'RMUX mode is active. Please use rmux to reply when needed. [pane %0, Codex]' Enter
+```
+
+Reference shell flow for entering rmux mode as master:
+
+```sh
+ME=${RMUX_PANE:-%0}
+SIG=Codex
+rmux list-panes -a -F '#{pane_id}|#{pane_current_command}|#{pane_title}|#{pane_dead}' |
+  while IFS='|' read -r pane cmd title dead; do
+    [ "$dead" = "0" ] || continue
+    [ "$pane" = "$ME" ] && continue
+    case "$cmd" in codex|claude|gemini|aider|cursor-agent|opencode)
+      rmux send-keys -t "$pane" "RMUX mode is active. I am coordinating this session. Reply through rmux when useful; include your pane/signature suffix. [pane $ME, $SIG]" Enter
+      ;;
+    esac
+  done
+```
+
+After the broadcast, do not continuously poll for replies unless the user asks you to wait, a deadline/marker was agreed, or the next step depends on that reply. Prefer sending the notice/task and continuing with useful local work.
+
+### Direct-send cautions
+
+Direct `send-keys ... Enter` writes into whatever the target pane is doing. If a human or another agent is typing in that pane, direct sends can corrupt the input line. Prefer direct sends only when the target appears idle or the user explicitly wants prompt injection.
+
+For large, structured, or non-ASCII payloads, prefer `set-buffer` + `paste-buffer`; direct `send-keys` may mangle content or fail on some builds.
+
 ## Mental model & addressing
 
 - An **agent** = one rmux **session** (recommended) or a **pane** inside it.
